@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru" class="dark scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Пелемешка — Доставка еды в Кандалакше | Пельмени, бургеры, гриль</title>
+    <meta
+      name="description"
+      content="Закажите горячие пельмени, бургеры, хот-доги, шаурму, купаты, закуски, десерты, морсы, коктейли и мороженое в Кандалакше. Бесплатная доставка от 1500 ₽ и скидка 10% на самовывоз."
+    />
+    <meta name="theme-color" content="#111111" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta property="og:site_name" content="Пелемешка" />
+    <meta
+      property="og:title"
+      content="Пелемешка — Доставка еды в Кандалакше"
+    />
+    <meta
+      property="og:description"
+      content="Горячие пельмени, крафтовые бургеры, хот-доги и закуски с быстрой доставкой по Кандалакше. Самовывоз со скидкой 10% по адресу ул. Советская, д. 5."
+    />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Пелемешка — Доставка еды в Кандалакше"
+    />
+    <meta
+      name="twitter:description"
+      content="Горячие пельмени, сочные бургеры и закуски с доставкой по г. Кандалакша. Бесплатная доставка от 1500 ₽."
+    />
+
+    <!-- Fonts: Cyrillic-ready Oswald (display), Manrope (UI/body), JetBrains Mono (prices/codes) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Restaurant",
+        "name": "Пелемешка",
+        "description": "Доставка еды в Кандалакше: пельмени, бургеры, шаурма, хот-доги, купаты, закуски, десерты и напитки.",
+        "servesCuisine": ["Русская кухня", "Бургеры", "Стрит-фуд"],
+        "priceRange": "₽₽",
+        "telephone": "8 (911) 063-47-85",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "ул. Советская, д. 5",
+          "addressLocality": "Кандалакша",
+          "addressRegion": "Мурманская область",
+          "addressCountry": "RU"
+        },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
+            "opens": "10:00",
+            "closes": "20:00"
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="bg-[#111111] text-white antialiased selection:bg-[#FFD400] selection:text-[#111111]">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

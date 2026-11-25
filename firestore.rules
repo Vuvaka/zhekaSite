@@ -1,0 +1,332 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedPrimaryAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email == 'mode199124@gmail.com' &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isVerifiedPrimaryAdmin() || (
+        isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidCategoryId(cat) {
+      return isValidId(cat) && cat.size() <= 64;
+    }
+
+    function isValidSizeOption(sizeObj) {
+      return sizeObj is map &&
+        sizeObj.keys().hasAll(['id', 'label', 'shortLabel', 'weight', 'price']) &&
+        sizeObj.keys().hasOnly(['id', 'label', 'shortLabel', 'weight', 'price']) &&
+        isValidId(sizeObj.id) &&
+        sizeObj.label is string && sizeObj.label.size() >= 1 && sizeObj.label.size() <= 60 &&
+        sizeObj.shortLabel is string && sizeObj.shortLabel.size() >= 1 && sizeObj.shortLabel.size() <= 20 &&
+        sizeObj.weight is string && sizeObj.weight.size() <= 40 &&
+        (sizeObj.price is int || sizeObj.price is float) &&
+        sizeObj.price >= 0 && sizeObj.price <= 100000;
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll([
+          'id',
+          'name',
+          'emoji',
+          'subtitle',
+          'image',
+          'available',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'name',
+          'emoji',
+          'subtitle',
+          'image',
+          'available',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidCategoryId(data.id) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 80 &&
+        data.emoji is string && data.emoji.size() <= 16 &&
+        data.subtitle is string && data.subtitle.size() <= 200 &&
+        data.image is string && data.image.size() >= 1 && data.image.size() <= 500 &&
+        data.available is bool &&
+        (data.sortOrder is int || data.sortOrder is float) && data.sortOrder >= 0 && data.sortOrder <= 100000;
+    }
+
+    function isValidHeroSlide(data) {
+      return data.keys().hasAll([
+          'id',
+          'categoryId',
+          'kicker',
+          'title',
+          'description',
+          'ctaLabel',
+          'image',
+          'available',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'categoryId',
+          'kicker',
+          'title',
+          'description',
+          'ctaLabel',
+          'image',
+          'available',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.id) && data.id.size() <= 80 &&
+        isValidCategoryId(data.categoryId) &&
+        data.kicker is string && data.kicker.size() <= 140 &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 180 &&
+        data.description is string && data.description.size() <= 500 &&
+        data.ctaLabel is string && data.ctaLabel.size() >= 1 && data.ctaLabel.size() <= 80 &&
+        data.image is string && data.image.size() >= 1 && data.image.size() <= 500 &&
+        data.available is bool &&
+        (data.sortOrder is int || data.sortOrder is float) && data.sortOrder >= 0 && data.sortOrder <= 100000;
+    }
+
+    function isValidMenuItem(data) {
+      return data.keys().hasAll([
+          'id',
+          'categoryId',
+          'name',
+          'description',
+          'weight',
+          'price',
+          'image',
+          'available',
+          'sortOrder',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id',
+          'categoryId',
+          'name',
+          'description',
+          'weight',
+          'price',
+          'image',
+          'tag',
+          'available',
+          'sortOrder',
+          'sizes',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        isValidId(data.id) && data.id.size() <= 80 &&
+        isValidCategoryId(data.categoryId) &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 140 &&
+        data.description is string && data.description.size() <= 500 &&
+        data.weight is string && data.weight.size() <= 40 &&
+        (data.price is int || data.price is float) && data.price >= 0 && data.price <= 100000 &&
+        data.image is string && data.image.size() >= 1 && data.image.size() <= 500 &&
+        (!('tag' in data) || (data.tag is string && data.tag.size() <= 40)) &&
+        data.available is bool &&
+        (data.sortOrder is int || data.sortOrder is float) && data.sortOrder >= 0 && data.sortOrder <= 100000 &&
+        (!('sizes' in data) || (
+          data.sizes is list &&
+          data.sizes.size() <= 6 &&
+          (data.sizes.size() == 0 || isValidSizeOption(data.sizes[0]))
+        ));
+    }
+
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt']) &&
+        data.keys().hasOnly(['email', 'role', 'createdAt']) &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 120 &&
+        data.role is string && data.role == 'admin';
+    }
+
+    // Connection health check document (non-PII)
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // Public menu categories (non-PII), admin-managed writes
+    match /categories/{categoryId} {
+      allow get: if isValidId(categoryId);
+      allow list: if true;
+
+      allow create: if isSignedIn() &&
+        isValidCategoryId(categoryId) &&
+        isValidCategory(incoming()) &&
+        incoming().id == categoryId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+
+      allow update: if isSignedIn() &&
+        isValidCategoryId(categoryId) &&
+        isValidCategory(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['available', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['sortOrder', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name',
+            'emoji',
+            'subtitle',
+            'image',
+            'available',
+            'sortOrder',
+            'updatedAt'
+          ])
+        ) &&
+        isAdmin();
+
+      allow delete: if isSignedIn() &&
+        isValidCategoryId(categoryId) &&
+        isAdmin();
+    }
+
+    // Public hero slider banners (non-PII), admin-managed writes
+    match /hero_slides/{slideId} {
+      allow get: if isValidId(slideId);
+      allow list: if true;
+
+      allow create: if isSignedIn() &&
+        isValidId(slideId) &&
+        isValidHeroSlide(incoming()) &&
+        incoming().id == slideId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+
+      allow update: if isSignedIn() &&
+        isValidId(slideId) &&
+        isValidHeroSlide(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['available', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['sortOrder', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'categoryId',
+            'kicker',
+            'title',
+            'description',
+            'ctaLabel',
+            'image',
+            'available',
+            'sortOrder',
+            'updatedAt'
+          ])
+        ) &&
+        isAdmin();
+
+      allow delete: if isSignedIn() &&
+        isValidId(slideId) &&
+        isAdmin();
+    }
+
+    // Public menu items catalog (non-PII), admin-managed writes
+    match /menu_items/{itemId} {
+      allow get: if isValidId(itemId);
+      allow list: if true;
+
+      allow create: if isSignedIn() &&
+        isValidId(itemId) &&
+        isValidMenuItem(incoming()) &&
+        incoming().id == itemId &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        isAdmin();
+
+      allow update: if isSignedIn() &&
+        isValidId(itemId) &&
+        isValidMenuItem(incoming()) &&
+        incoming().id == existing().id &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          incoming().diff(existing()).affectedKeys().hasOnly(['price', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['available', 'updatedAt']) ||
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'categoryId',
+            'name',
+            'description',
+            'weight',
+            'price',
+            'image',
+            'tag',
+            'available',
+            'sortOrder',
+            'sizes',
+            'updatedAt'
+          ])
+        ) &&
+        isAdmin();
+
+      allow delete: if isSignedIn() &&
+        isValidId(itemId) &&
+        isAdmin();
+    }
+
+    // Store admins registry (PII-isolated to owner or primary admin)
+    match /admins/{userId} {
+      allow get: if isSignedIn() &&
+        isValidId(userId) &&
+        request.auth.token.email_verified == true &&
+        (request.auth.uid == userId || isVerifiedPrimaryAdmin());
+
+      allow list: if isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        isVerifiedPrimaryAdmin();
+
+      allow create: if isVerifiedPrimaryAdmin() &&
+        isValidId(userId) &&
+        isValidAdminUser(incoming()) &&
+        incoming().createdAt == request.time;
+
+      allow update: if isVerifiedPrimaryAdmin() &&
+        isValidId(userId) &&
+        isValidAdminUser(incoming()) &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['email', 'role']);
+
+      allow delete: if isVerifiedPrimaryAdmin() && isValidId(userId);
+    }
+  }
+}
